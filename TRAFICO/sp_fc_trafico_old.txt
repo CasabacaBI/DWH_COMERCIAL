@@ -1,0 +1,228 @@
+CREATE OR REPLACE PROCEDURE `CRG_FC_TRAFICO`(VAR_SCHEMA varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NULL) RETURNS void AS
+/***********************************************************************************************************************
+  * Descripcion: Cargar Datos FC_TRAFICO
+  * Version: 1.0.0
+  * Fecha Creacion: 24/01/2020
+  * Autor: Ivan Suasnavas
+  * Comentario : Para Ejecutar = CALL CRG_FC_TRAFICO('SQUEMA')
+  -------------------------------------------------------------------------
+  * Fecha Modificacion:
+  * Modificado:
+*************************************************************************************************************************/
+DECLARE
+	VAR_SQL VARCHAR(4000);
+	VAR_ERROR VARCHAR(4000);
+	VAR_DT_INICIO TIMESTAMP = CURRENT_TIMESTAMP;
+BEGIN
+START TRANSACTION;
+	INSERT INTO CTR.LOG_PROCESO (MODULO, ETAPA,DT_FECHA_INICIO) VALUES ('INTERMEDIA',CONCAT('INICIO ',VAR_SCHEMA,'.CRG_FC_TRAFICO'),VAR_DT_INICIO);
+	COMMIT;
+
+	VAR_SQL=CONCAT('DROP TABLE IF EXISTS ',VAR_SCHEMA,'.TMP_FC_TRAFICO');
+	 EXECUTE IMMEDIATE VAR_SQL;
+	COMMIT;	
+
+	VAR_SQL=CONCAT('DROP TABLE IF EXISTS ',VAR_SCHEMA,'.TMP_INTERES_VEHICULO');
+	 EXECUTE IMMEDIATE VAR_SQL;
+	COMMIT;
+
+VAR_SQL=CONCAT('CREATE TABLE DSA.TMP_INTERES_VEHICULO
+SELECT ID, interes_vehiculo, A
+FROM
+(SELECT id, interes_vehiculo, A,
+                CASE WHEN B <> A AND A = C  THEN B
+                        WHEN B <> A AND B = C THEN B
+                        WHEN B <> A AND B <> C THEN B
+                        ELSE NULL END AS B1,
+                CASE WHEN B = C AND C <> A THEN D
+                        WHEN B = C AND D <> A THEN D
+                        WHEN C <> A AND C <> B AND C <> D THEN C
+                        ELSE NULL END AS C1,
+                CASE WHEN A <> B AND B <> C AND C <> D AND A <> C THEN D
+                        WHEN D <> A AND B = C THEN NULL
+                        WHEN A = C AND B = D THEN NULL
+                        ELSE NULL END AS D1
+FROM
+(SELECT id, interes_vehiculo, SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",1) AS A ,
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",2),",",-1) AS B,
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-2),",",1) AS C,
+SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-1) AS D
+FROM DSA.CRM_CB_NEGOCIACION
+)A)A
+');
+ 	EXECUTE IMMEDIATE VAR_SQL;
+	COMMIT;
+
+VAR_SQL=CONCAT('INSERT INTO DSA.TMP_INTERES_VEHICULO
+SELECT ID, interes_vehiculo, B1 AS A
+FROM
+(SELECT id, interes_vehiculo, A,
+                CASE WHEN B <> A AND A = C  THEN B
+                        WHEN B <> A AND B = C THEN B
+                        WHEN B <> A AND B <> C THEN B
+                        ELSE NULL END AS B1,
+                CASE WHEN B = C AND C <> A THEN D
+                        WHEN B = C AND D <> A THEN D
+                        WHEN C <> A AND C <> B AND C <> D THEN C
+                        ELSE NULL END AS C1,
+                CASE WHEN A <> B AND B <> C AND C <> D AND A <> C THEN D
+                        WHEN D <> A AND B = C THEN NULL
+                        WHEN A = C AND B = D THEN NULL
+                        ELSE NULL END AS D1
+FROM
+(SELECT id, interes_vehiculo, SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",1) AS A , 
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",2),",",-1) AS B,
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-2),",",1) AS C,
+SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-1) AS D
+FROM DSA.CRM_CB_NEGOCIACION
+)A)A WHERE B1 IS NOT NULL
+');
+ 	EXECUTE IMMEDIATE VAR_SQL;
+	COMMIT;
+
+VAR_SQL=CONCAT('INSERT INTO DSA.TMP_INTERES_VEHICULO
+SELECT ID, interes_vehiculo, C1 AS A
+FROM
+(SELECT id, interes_vehiculo, A,
+                CASE WHEN B <> A AND A = C  THEN B
+                        WHEN B <> A AND B = C THEN B
+                        WHEN B <> A AND B <> C THEN B
+                        ELSE NULL END AS B1,
+                CASE WHEN B = C AND C <> A THEN D
+                        WHEN B = C AND D <> A THEN D
+                        WHEN C <> A AND C <> B AND C <> D THEN C
+                        ELSE NULL END AS C1,
+                CASE WHEN A <> B AND B <> C AND C <> D AND A <> C THEN D
+                        WHEN D <> A AND B = C THEN NULL
+                        WHEN A = C AND B = D THEN NULL
+                        ELSE NULL END AS D1
+FROM
+(SELECT id, interes_vehiculo, SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",1) AS A , 
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",2),",",-1) AS B,
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-2),",",1) AS C,
+SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-1) AS D
+FROM DSA.CRM_CB_NEGOCIACION
+)A)A WHERE C1 IS NOT NULL
+');
+ 	EXECUTE IMMEDIATE VAR_SQL;
+	COMMIT;
+
+VAR_SQL=CONCAT('INSERT INTO DSA.TMP_INTERES_VEHICULO
+SELECT ID, interes_vehiculo, D1 AS A
+FROM
+(SELECT id, interes_vehiculo, A,
+                CASE WHEN B <> A AND A = C  THEN B
+                        WHEN B <> A AND B = C THEN B
+                        WHEN B <> A AND B <> C THEN B
+                        ELSE NULL END AS B1,
+                CASE WHEN B = C AND C <> A THEN D
+                        WHEN B = C AND D <> A THEN D
+                        WHEN C <> A AND C <> B AND C <> D THEN C
+                        ELSE NULL END AS C1,
+                CASE WHEN A <> B AND B <> C AND C <> D AND A <> C THEN D
+                        WHEN D <> A AND B = C THEN NULL
+                        WHEN A = C AND B = D THEN NULL
+                        ELSE NULL END AS D1
+FROM
+(SELECT id, interes_vehiculo, SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",1) AS A , 
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",2),",",-1) AS B,
+SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-2),",",1) AS C,
+SUBSTRING_INDEX(REPLACE( interes_vehiculo,"^",""),",",-1) AS D
+FROM DSA.CRM_CB_NEGOCIACION
+)A)A WHERE D1 IS NOT NULL
+');
+ 	EXECUTE IMMEDIATE VAR_SQL;
+	COMMIT;
+
+	VAR_SQL=CONCAT('CREATE TABLE DSA.TMP_FC_TRAFICO
+SELECT
+	"01" AS cod_empresa
+	, T.id as id_trafico
+	, A.s3s_id as Agencia
+	, L.s3s_id as lineanegocio
+	, estado as trafico_estado
+	, U.user_name as vendedor
+	, esta_interesado as interesado_trafico
+	, visita_tipo
+	, T.numero_identificacion 
+	, CASE WHEN CC.id_cliente_c IS NULL THEN CCN.id_cliente_c ELSE NULL END as cod_cliente
+	, revisado as revision_trafico
+	, VI.A as interes_vehiculo
+	, timestampadd(HOUR,-5,T.date_entered) as fecha_creacion
+	, timestampadd(HOUR,-5,T.hora_entrada) as hora_entrada
+	, timestampadd(HOUR,-5,T.hora_salida) as hora_salida
+	, tiempo_atencion
+	, timestampadd(HOUR,-5,T.fecha_revisado) as fecha_revision
+	, N.name
+	, N.id id_negociacion
+FROM
+	CRM_CB_TRAFICOCONTROL T
+	LEFT JOIN CRM_CB_AGENCIAS A ON T.cb_agencias_id_c = A.id
+	LEFT JOIN CRM_CB_LINEANEGOCIO L ON T.cb_lineanegocio_id_c = L.id
+	LEFT JOIN CRM_USERS U ON T.user_id_c = U.id
+	LEFT JOIN CRM_CB_TRAFICOCONTROL_CONTACTS_C TC ON T.id = TC.cb_traficocontrol_contactscb_traficocontrol_ida
+	LEFT JOIN CRM_CONTACTS C ON TC.cb_traficocontrol_contactscontacts_idb = C.id
+	LEFT JOIN CRM_CONTACTS_CSTM CC ON TC.cb_traficocontrol_contactscontacts_idb = CC.id_c 
+	LEFT JOIN CRM_CB_NEGOCIACION_CB_TRAFICOCONTROL_C NT ON T.id = NT.cb_negociacion_cb_traficocontrolcb_traficocontrol_idb
+	LEFT JOIN CRM_CB_NEGOCIACION N ON NT.cb_negociacion_cb_traficocontrolcb_negociacion_ida = N.id
+	LEFT JOIN CRM_CB_NEGOCIACION_CONTACTS_C NC ON N.id = NC.cb_negociacion_contactscb_negociacion_idb
+	LEFT JOIN CRM_CONTACTS CN ON NC.cb_negociacion_contactscontacts_ida = CN.id
+	LEFT JOIN CRM_CONTACTS_CSTM CCN ON CN.id = CCN.id_c 
+	LEFT JOIN (SELECT ID, interes_vehiculo, A FROM DSA.TMP_INTERES_VEHICULO) VI ON N.id = VI.id
+WHERE T.deleted <> 1 AND T.assigned_user_id IS NOT NULL
+');
+ 	EXECUTE IMMEDIATE VAR_SQL;
+	COMMIT;
+
+	VAR_SQL=CONCAT('TRUNCATE TABLE DWH.FC_TRAFICO');
+		EXECUTE IMMEDIATE VAR_SQL;
+		COMMIT;
+
+	VAR_SQL=CONCAT('INSERT INTO DWH.FC_TRAFICO
+	(SK_TRAFICO,SK_EMPRESA,SK_CONTACTO,SK_AGENCIA,SK_LINEA_NEGOCIO,SK_VENDEDOR,SK_ESTADO_TRAFICO,SK_INTERESADO_TRAFICO,SK_REVISION_TRAFICO,
+	SK_VISITA_TIPO,SK_VEHICULO_INTERES,SK_NEGOCIACION,FECHA_CREACION,HORA_ENTRADA,HORA_SALIDA,TIEMPO_ATENCION,FECHA_REVISION)
+	SELECT DISTINCT
+	NVL(TR.SK_TRAFICO,1) SK_TRAFICO
+	, NVL(E.SK_EMPRESA,1) SK_EMPRESA
+	, NVL(C.SK_CONTACTO,1) SK_CONTACTO
+	, NVL(A.SK_AGENCIA,1) SK_AGENCIA
+	, NVL(L.SK_LINEA_NEGOCIO,1) SK_LINEA_NEGOCIO
+	, NVL(V.SK_VENDEDOR,1) SK_VENDEDOR
+	, NVL(ET.SK_ESTADO_TRAFICO,1) SK_ESTADO_TRAFICO
+	, NVL(IT.SK_INTERESADO_TRAFICO,1) SK_INTERESADO_TRAFICO
+	, NVL(RT.SK_REVISION_TRAFICO,1) SK_REVISION_TRAFICO
+	, NVL(VT.SK_VISITA_TIPO,1) SK_VISITA_TIPO
+	, NVL(VI.SK_VEHICULO_INTERES,1) SK_VEHICULO_INTERES
+	, NVL(N.SK_NEGOCIACION,1) SK_NEGOCIACION
+	, NVL(T.fecha_creacion,"1980-01-01 00:00:01") FECHA_CREACION
+	, NVL(T.hora_entrada,1) HORA_ENTRADA
+	, NVL(T.hora_salida,1) HORA_SALIDA
+	, NVL(TIEMPO_ATENCION,0) TIEMPO_ATENCION
+	, NVL(T.fecha_revision,"1980-01-01 00:00:01") FECHA_REVISION
+	FROM
+	DSA.TMP_FC_TRAFICO T
+	LEFT JOIN DWH.DIM_TRAFICO TR ON T.ID_TRAFICO = TR.COD_TRAFICO
+	LEFT JOIN DWH.DIM_EMPRESA E ON T.COD_EMPRESA = E.COD_EMPRESA
+	LEFT JOIN DWH.DIM_CONTACTO C ON T.cod_cliente = C.COD_CLIENTE AND T.cod_empresa = C.COD_EMPRESA AND T.numero_identificacion = C.CEDULA
+	LEFT JOIN DWH.DIM_AGENCIA A ON T.Agencia = A.COD_AGENCIA AND T.cod_empresa = A.COD_EMPRESA
+	LEFT JOIN DWH.DIM_LINEA_NEGOCIO L ON T.lineanegocio = L.COD_LINEA_NEGOCIO AND T.cod_empresa = L.COD_EMPRESA
+	LEFT JOIN DWH.DIM_VENDEDOR V ON T.vendedor = V.COD_USUARIO AND T.cod_empresa = V.COD_EMPRESA
+	LEFT JOIN DWH.DIM_ESTADO_TRAFICO ET ON T.trafico_estado = ET.COD_ESTADO_TRAFICO
+	LEFT JOIN DWH.DIM_INTERESADO_TRAFICO IT ON T.interesado_trafico = IT.COD_INTERESADO_TRAFICO
+	LEFT JOIN DWH.DIM_REVISION_TRAFICO RT ON T.revision_trafico = RT.COD_REVISION_TRAFICO
+	LEFT JOIN DWH.DIM_VISITA_TIPO VT ON T.visita_tipo = VT.COD_VISITA_TIPO
+	LEFT JOIN DWH.DIM_VEHICULOS_INTERES VI ON T.interes_vehiculo = VI.COD_VEHICULO_INTERES
+	LEFT JOIN DWH.DIM_NEGOCIACION N ON T.ID_NEGOCIACION = N.ID_NEGOCIACION
+	');
+	EXECUTE IMMEDIATE VAR_SQL;
+		COMMIT;	
+	
+		VAR_SQL=CONCAT('DROP TABLE IF EXISTS DSA.TMP_FC_TRAFICO');
+		 EXECUTE IMMEDIATE VAR_SQL;
+		COMMIT;
+
+		VAR_SQL=CONCAT('DROP TABLE IF EXISTS DSA.TMP_INTERES_VEHICULO');
+		 EXECUTE IMMEDIATE VAR_SQL;
+		COMMIT;
+	
+END;
