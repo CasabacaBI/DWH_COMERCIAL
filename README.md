@@ -1,1 +1,1 @@
-Aqui se manejara todo el repositorio del DWH_COMERCIAL.
+Aquí se manejará todo el repositorio del DWH_COMERCIAL.
